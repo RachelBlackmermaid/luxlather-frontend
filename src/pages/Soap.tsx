@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import api from "../lib/api";
 
-
+//use general type file 
 type Product = {
   _id: string;
   name: string;
   imageSrc: string,
   description: string;
   price: number;
-  category: string;
+  category: 'soap' | 'oil';
 }
 
 const SoapPage = () => {
@@ -56,6 +56,7 @@ const SoapPage = () => {
                 ${p.price}
               </p>
             </a>
+
           ))}
         </div>
       </div>
