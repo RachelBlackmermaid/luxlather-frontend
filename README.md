@@ -45,3 +45,38 @@ VITE_API_URL=https://luxlather-backend.onrender.com/api
 pnpm dev
 ```
 Open http://localhost:5173 in your browser.
+
+## 🧱 Build & Preview
+```bash
+pnpm build       # builds the app for production
+pnpm preview     # locally preview the production build
+```
+## 🌍 Deployment
+This app is fully static after build(/dist folder)
+You can deploy to:
+- Netfly
+- Vercel
+- Cloudflare Pages
+- S3 + CloudFront
+- Docker(if neeed)
+
+## 📁 Project Structure
+```bash
+luxlather-frontend/
+├── public/              # Static assets
+├── src/                 # React app code
+├── index.html           # Main HTML template
+├── vite.config.ts       # Vite config
+├── tsconfig.json        # TypeScript config
+├── .env.example         # Example env vars
+```
+---
+## 🧼 About the Project
+LuxLather is designed for simplicity, speed, and real-world functionality.
+This frontend pairs with the LuxLather backend for full eCommerce functionality including:
+- JWT-based authentication
+- Image uploads (Cloudinary or similar)
+- Admin dashboard with secure routes
+
+## 👩🏾‍💻 Author
+Made by [Rachel Kibirigi](https://github.com/RachelBlackmermaid)
