@@ -4,7 +4,7 @@ export const SUPPORTED_CURRENCIES =
     .split(",").map((s: string )=> s.trim().toUpperCase());
 
 export const DEFAULT_CURRENCY =
-  (import.meta.env.VITE_DEFAULT_CURRENCY || "UGX").toUpperCase();
+  (import.meta.env.VITE_DEFAULT_CURRENCY || "USD").toUpperCase();
 
 const CURRENCY_EXPONENT: Record<string, number> = {
   UGX: 0,
