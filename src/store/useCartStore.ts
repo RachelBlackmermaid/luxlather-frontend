@@ -3,16 +3,15 @@ import { devtools, persist } from "zustand/middleware";
 import toast from "react-hot-toast";
 import { formatYen } from "../assets/utils/currency";
 
-// types
+/* Types */
 export type CartItem = {
-  _id: string;
+  _id: string;          // productId in DB
   name: string;
-  price: number;
+  price: number;        // major units (display only; backend recomputes)
   imageSrc: string;
   quantity: number;
 };
 
-// cart state
 type CartState = {
   cart: CartItem[];
 
@@ -21,10 +20,27 @@ type CartState = {
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
 
-  //computed
+  // computed
   totalItems: () => number;
   totalPrice: () => number;
   formattedTotalPrice: () => string;
+
+  // helper for API payloads (backend expects productId + quantity)
+  toApiItems: () => { productId: string; quantity: number }[];
+};
+
+/* Currency formatting (keeps your existing formatYen, but supports ENV override) */
+const ENV_CCY = (import.meta.env.VITE_DEFAULT_CURRENCY || "JPY").toUpperCase();
+const formatCurrency = (amount: number) => {
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: ENV_CCY,
+    }).format(amount);
+  } catch {
+    // fallback to your existing util
+    return formatYen(amount);
+  }
 };
 
 const useCartStore = create<CartState>()(
@@ -33,30 +49,32 @@ const useCartStore = create<CartState>()(
       (set, get) => ({
         cart: [],
 
-        // add product or update quantity
-        addToCart: (item, quantity ) => {
-          const  cart = get().cart;
+        addToCart: (item, quantity) => {
+          const qty = Math.max(1, Math.trunc(Number(quantity) || 1));
+          const cart = get().cart;
           const existing = cart.find((i) => i._id === item._id);
 
           if (existing) {
             set(
               {
-                cart: cart.map((i) => i._id === item._id ? { ...i, quantity: i.quantity + quantity} : i),
+                cart: cart.map((i) =>
+                  i._id === item._id ? { ...i, quantity: i.quantity + qty } : i
+                ),
               },
               false,
               "cart/addQuantity"
             );
-            toast.success(`Updated Quantity x ${quantity}`);
+            toast.success(`Updated quantity × ${qty}`);
           } else {
-            set (
-              { cart: [...cart, { ...item, quantity }]},
+            set(
+              { cart: [...cart, { ...item, quantity: qty }] },
               false,
               "cart/addItem"
             );
             toast.success(`${item.name} added to cart`);
           }
         },
-        //Remove item from cart
+
         removeFromCart: (id) => {
           const item = get().cart.find((i) => i._id === id);
           set(
@@ -64,42 +82,45 @@ const useCartStore = create<CartState>()(
             false,
             "cart/removeItem"
           );
-          if (item) toast(`${item.name} を消しました！`, { icon: "🗑️"});
+          if (item) toast(`${item.name} を消しました！`, { icon: "🗑️" });
         },
 
-        //Update quantity directly
         updateQuantity: (id, quantity) => {
+          const qty = Math.max(1, Math.trunc(Number(quantity) || 1));
           set(
             {
-              cart: get().cart.map((i) => i._id === id ? { ...i, quantity } : i),
+              cart: get().cart.map((i) =>
+                i._id === id ? { ...i, quantity: qty } : i
+              ),
             },
             false,
             "cart/updateQuantity"
           );
         },
 
-        //Clear entire cart
         clearCart: () => {
-          set({ cart: []}, false, "cart/clear");
-          toast("カートを空にしました", { icon: "🧹"});
+          set({ cart: [] }, false, "cart/clear");
+          toast("カートを空にしました", { icon: "🧹" });
         },
-        //Total item computed 
-        totalItems: () => 
-         get().cart.reduce((sum, item) => sum + item.quantity, 0),
-        //Total price
-        totalPrice: () => 
-          get().cart.reduce((sum, item) => sum + item.quantity * item.price, 0),
 
-        //total price formatted
-        formattedTotalPrice: () => formatYen(get().totalPrice()),
+        totalItems: () =>
+          get().cart.reduce((sum, item) => sum + item.quantity, 0),
+
+        totalPrice: () =>
+          get().cart.reduce((sum, item) => sum + item.quantity * (Number(item.price) || 0), 0),
+
+        formattedTotalPrice: () => formatCurrency(get().totalPrice()),
+
+        // 🔑 Use this when calling /api/checkout/session or /api/orders
+        toApiItems: () =>
+          get().cart.map((i) => ({ productId: i._id, quantity: i.quantity })),
       }),
       {
-        name:"cart-storage", //localstorage key
-        partialize: (state) => ({cart: state.cart}), //only persists cart  array
+        name: "cart-storage", // localStorage key
+        partialize: (state) => ({ cart: state.cart }), // only persist cart
       }
     )
   )
-
 );
 
 export default useCartStore;

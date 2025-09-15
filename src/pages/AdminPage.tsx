@@ -5,31 +5,29 @@ import ProductForm from "../components/ProductForm";
 import { motion, AnimatePresence } from "framer-motion";
 import { PencilLine, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/auth";
 
 const SCROLL_KEY = "luxlather-scroll-position";
 
 const AdminPage = () => {
-
   const navigate = useNavigate();
+  const { user, loading, logout } = useAuth();
 
-  const [isAuthChecked, setIsAuthChecked] = useState(false);
   const [oils, setOils] = useState<Product[]>([]);
   const [soaps, setSoaps] = useState<Product[]>([]);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [activeCategory, setActiveCategory] = useState<"oil" | "soap">("oil");
   const [toastMessage, setToastMessage] = useState("");
 
+  // Auth guard: wait for /auth/me, then allow only admins
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/admin-login");
-    } else {
-      setIsAuthChecked(true);
+    if (loading) return;
+    if (!user || user.role !== "admin") {
+      navigate("/admin-login", { replace: true });
     }
-  }, [navigate]);
+  }, [user, loading, navigate]);
 
- 
-
+  // Fetch products (supports array OR { items: [...] } responses)
   const fetchProducts = async () => {
     try {
       const [oilRes, soapRes] = await Promise.all([
@@ -37,8 +35,16 @@ const AdminPage = () => {
         api.get("/products", { params: { category: "soap" } }),
       ]);
 
-      setOils(oilRes.data);
-      setSoaps(soapRes.data);
+      const oilsData: Product[] = Array.isArray(oilRes.data)
+        ? oilRes.data
+        : oilRes.data?.items || [];
+
+      const soapsData: Product[] = Array.isArray(soapRes.data)
+        ? soapRes.data
+        : soapRes.data?.items || [];
+
+      setOils(oilsData);
+      setSoaps(soapsData);
     } catch (err) {
       console.error("Failed to fetch products", err);
     }
@@ -47,7 +53,7 @@ const AdminPage = () => {
   const handleDelete = async (id: string) => {
     try {
       await api.delete(`/products/${id}`);
-      fetchProducts();
+      await fetchProducts();
       setToastMessage("🗑️ Product deleted");
       setTimeout(() => setToastMessage(""), 3000);
     } catch (err) {
@@ -60,12 +66,14 @@ const AdminPage = () => {
     const savedScroll = localStorage.getItem(SCROLL_KEY);
     if (savedScroll) {
       setTimeout(() => {
-        window.scrollTo({ top: parseInt(savedScroll), behavior: "smooth" });
+        window.scrollTo({ top: parseInt(savedScroll, 10), behavior: "smooth" });
         localStorage.removeItem(SCROLL_KEY);
       }, 200);
     }
   }, []);
-  if (!isAuthChecked) return null;
+
+  // While checking auth, don’t flash the page
+  if (loading || !user || user.role !== "admin") return null;
 
   return (
     <section className="p-8 max-w-5xl mx-auto">
@@ -83,20 +91,18 @@ const AdminPage = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
       <div className="flex justify-end">
-      <button
-        onClick={() => {
-          localStorage.removeItem("token");
-          window.location.href = "/admin-login";
-        }}
-        className="ml-auto mb-4 text-xl text-primary font-bold hover:underline bg-gray-200 p-2 rounded-b-sm"
-      >
-        🔒 Logout
-      </button>
-
-
+        <button
+          onClick={async () => {
+            await logout(); // clears HttpOnly cookie
+            navigate("/admin-login", { replace: true });
+          }}
+          className="ml-auto mb-4 text-xl text-primary font-bold hover:underline bg-gray-200 p-2 rounded-b-sm"
+        >
+          🔒 Logout
+        </button>
       </div>
-      
 
       <h2 className="text-3xl font-bold mb-6">🛠 Admin Dashboard</h2>
 
@@ -108,9 +114,7 @@ const AdminPage = () => {
             setEditingProduct(null);
           }}
           className={`px-4 py-2 rounded ${
-            activeCategory === "oil"
-              ? "bg-black text-white"
-              : "bg-gray-200 text-black"
+            activeCategory === "oil" ? "bg-black text-white" : "bg-gray-200 text-black"
           }`}
         >
           Oils
@@ -121,9 +125,7 @@ const AdminPage = () => {
             setEditingProduct(null);
           }}
           className={`px-4 py-2 rounded ${
-            activeCategory === "soap"
-              ? "bg-black text-white"
-              : "bg-gray-200 text-black"
+            activeCategory === "soap" ? "bg-black text-white" : "bg-gray-200 text-black"
           }`}
         >
           Soaps
@@ -147,20 +149,17 @@ const AdminPage = () => {
       {/* Products List */}
       <div className="mt-10 space-y-4">
         {(activeCategory === "oil" ? oils : soaps).map((p) => (
-          <div
-            key={p._id}
-            className="border rounded p-4 flex justify-between items-center"
-          >
+          <div key={p._id} className="border rounded p-4 flex justify-between items-center">
             <div>
               <h3 className="font-semibold">{p.name}</h3>
               <p className="text-sm text-gray-500">
-                ${p.price} – {p.category}
+                ${typeof p.price === "number" ? p.price : (p.priceCents ?? 0) / 100} – {p.category}
               </p>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => {
-                  localStorage.setItem(SCROLL_KEY, window.scrollY.toString());
+                  localStorage.setItem(SCROLL_KEY, String(window.scrollY));
                   setEditingProduct(p);
                 }}
                 title="Edit"

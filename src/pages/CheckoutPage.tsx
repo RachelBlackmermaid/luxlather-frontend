@@ -1,8 +1,8 @@
 import { z } from "zod";
 import React, { useState } from "react";
 import useCartStore from "../store/useCartStore";
-import { formatYen } from "../assets/utils/currency";
-import axios from "axios";
+import api from "../lib/api";
+import { formatMoney, getCurrency } from "../lib/currency";
 
 // Zod schema
 const checkoutSchema = z.object({
@@ -13,12 +13,17 @@ const checkoutSchema = z.object({
 });
 
 type CheckoutFormData = z.infer<typeof checkoutSchema>;
+type StripeSessionResponse = { id: string; url: string };
 
-const CheckoutPage = () => {
+const CheckoutPage: React.FC = () => {
   const cart = useCartStore((s) => s.cart);
+  const toApiItems =
+    // use helper if your store has it, else fallback
+    (useCartStore.getState().toApiItems?.bind(useCartStore.getState())) ||
+    (() => cart.map((i) => ({ productId: i._id, quantity: i.quantity })));
 
-  const total = cart.reduce((sum, item) => sum + item.quantity * item.price, 0);
-  const formattedTotal = formatYen(total);
+  const total = cart.reduce((sum, item) => sum + item.quantity * (Number(item.price) || 0), 0);
+  const formattedTotal = formatMoney(total);
 
   const [form, setForm] = useState<CheckoutFormData>({
     name: "",
@@ -33,7 +38,7 @@ const CheckoutPage = () => {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
   };
 
   const handleStripePayment = async () => {
@@ -43,27 +48,35 @@ const CheckoutPage = () => {
       setError(firstError || "Invalid input");
       return;
     }
+    if (!cart.length) {
+      setError("Your cart is empty.");
+      return;
+    }
 
     setError(null);
     setLoading(true);
 
     try {
-      const res = await axios.post<{ url: string }>(
-        `${import.meta.env.VITE_API_URL}/checkout/create-session`,
-        {
-          customer: form,
-          items: cart,
-        }
-      );
+      const currency = getCurrency(); // UGX by default (can be KES/RWF/TZS/JPY/USD/EUR)
+      const payload = {
+        items: toApiItems(),
+        currency,
+        customer: form,
+      };
 
-      if (res.data.url) {
-        window.location.href = res.data.url; // Redirect to Stripe
+      const { data } = await api.post<StripeSessionResponse>("/checkout/session", payload);
+      if (data?.url) {
+        window.location.href = data.url; // Redirect to Stripe Checkout
       } else {
         throw new Error("Stripe session URL missing");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError("Failed to start payment. Please try again!");
+      const msg =
+        err?.response?.data?.error ||
+        err?.response?.data?.message ||
+        "Failed to start payment. Please try again!";
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -114,7 +127,7 @@ const CheckoutPage = () => {
         <button
           onClick={handleStripePayment}
           disabled={loading || cart.length === 0}
-          className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 w-full"
+          className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 w-full disabled:opacity-60"
         >
           {loading ? "Redirecting..." : `Pay – ${formattedTotal}`}
         </button>

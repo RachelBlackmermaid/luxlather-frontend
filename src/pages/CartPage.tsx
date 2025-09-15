@@ -1,42 +1,39 @@
 // src/pages/CartPage.tsx
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import type { ChangeEvent } from 'react';
+import type { ChangeEvent } from "react";
 import useCartStore from "../store/useCartStore";
-import { formatYen } from "../assets/utils/currency"            // global formatter
+import { formatMoney } from "../lib/currency"; // ⬅️ use multi-currency formatter
 
 const CartPage = () => {
-  /* -------------------------------------------------
-   *  Select only the slices we need to minimise re-renders
-   * ------------------------------------------------- */
-  const cart           = useCartStore((s) => s.cart);
+  // Select only the slices we need to minimise re-renders
+  const cart = useCartStore((s) => s.cart);
   const removeFromCart = useCartStore((s) => s.removeFromCart);
   const updateQuantity = useCartStore((s) => s.updateQuantity);
-  const clearCart      = useCartStore((s) => s.clearCart);
+  const clearCart = useCartStore((s) => s.clearCart);
 
-  // derived values (functions) – call them once per render
-  const totalItems          = useCartStore.getState().totalItems();
+  // Derived values (call once per render)
+  const totalItems = useCartStore.getState().totalItems();
   const formattedTotalPrice = useCartStore.getState().formattedTotalPrice();
 
   const navigate = useNavigate();
 
-  /* ------------ Set doc title on mount ------------ */
   useEffect(() => {
     document.title = "Your Cart – Essential Goods";
   }, []);
 
-  /* ------------ Handlers ------------ */
   const handleQtyChange = (e: ChangeEvent<HTMLInputElement>, id: string) => {
-    const value = Math.max(1, Number(e.target.value)); // prevent 0 / negatives
+    const value = Math.max(1, Math.trunc(Number(e.target.value) || 1)); // prevent 0 / negatives / decimals
     updateQuantity(id, value);
   };
 
   const handleCheckout = () => {
+    // If you already have a dedicated checkout page, keep navigation.
+    // That page will post to /api/checkout/session and redirect to Stripe.
     navigate("/checkout");
-    // TODO: navigate to /checkout after Stripe integration
   };
 
-  /* ------------ Empty Cart UI ------------ */
+  // Empty cart UI
   if (cart.length === 0) {
     return (
       <section className="text-center py-20">
@@ -53,7 +50,7 @@ const CartPage = () => {
     );
   }
 
-  /* ------------ Main Cart UI ------------ */
+  // Main cart UI
   return (
     <section className="max-w-6xl mx-auto px-4 py-10">
       <h1 className="text-4xl font-bold mb-8">Shopping Cart</h1>
@@ -73,7 +70,9 @@ const CartPage = () => {
               />
               <div>
                 <h2 className="text-lg font-medium">{item.name}</h2>
-                <p className="text-gray-600">{formatYen(item.price)}</p>
+                <p className="text-gray-600">
+                  {formatMoney(Number(item.price) || 0)}
+                </p>
               </div>
             </div>
 
@@ -108,10 +107,7 @@ const CartPage = () => {
         </p>
 
         <div className="flex justify-end gap-4 mt-4">
-          <button
-            onClick={clearCart}
-            className="text-gray-600 hover:underline"
-          >
+          <button onClick={clearCart} className="text-gray-600 hover:underline">
             Clear Cart
           </button>
           <button

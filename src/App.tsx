@@ -13,8 +13,12 @@ import SuccessPage from "./pages/SuccessPage";
 import About from "./pages/About";
 import AdminPage from "./pages/AdminPage";
 import AdminLogin from "./pages/AdminLogin";
-
-
+import AdminContactInbox from "./pages/AdminContactInbox";
+import AdminOrders from "./pages/AdminOrders";
+import CustomerLogin from "./pages/CustomerLogin";
+import CustomerSignup from "./pages/CustomerSignup";
+import AccountPage from "./pages/AccountPage";
+import MyOrders from "./pages/MyOrders";
 
 function App() {
   return (
@@ -27,17 +31,22 @@ function App() {
             <Route path="/about" element={<About />} />
             <Route path="/oil" element={<Oil />} />
             <Route path="/soap" element={<Soap />} />
-            <Route path="/products/:id" element={<ProductDetails/>}/>
+            <Route path="/products/:id" element={<ProductDetails />} />
             <Route path="/contact" element={<Contact />} />
-            <Route path="/cart" element={<CartPage/>} />
-            <Route path="/checkout" element={<CheckoutPage/>} />
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/success" element={<SuccessPage />} />
-            <Route path="/admin" element={<AdminPage/>} />
+            <Route path="/admin" element={<AdminPage />} />
             <Route path="/admin-login" element={<AdminLogin />} />
-            
+            <Route path="/admin/contact" element={<AdminContactInbox />} />
+            <Route path="/admin/orders" element={<AdminOrders />} />
+            <Route path="/login" element={<CustomerLogin />} />
+            <Route path="/signup" element={<CustomerSignup />} />
+            <Route path="/account" element={<AccountPage />} />
+            <Route path="/account/orders" element={<MyOrders />} />
           </Routes>
         </div>
-        <Footer/>
+        <Footer />
       </BrowserRouter>
     </main>
   );
