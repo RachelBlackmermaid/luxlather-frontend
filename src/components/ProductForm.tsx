@@ -8,7 +8,7 @@ import type { Product } from "../types/product";
 
 const schema = z.object({
   name: z.string().min(2, "Name is too short"),
-  imageSrc: z.string().url("Must be a valid image URL"),
+  imageSrc: z.string().min(1, "Image is required").url("Must be a valid image URL"),
   description: z.string().min(5, "Description is too short"),
   price: z.number().min(1, "Price must be at least 1"),
   category: z.enum(["oil", "soap"]),
@@ -32,11 +32,11 @@ const ProductForm = ({ product, onSave, defaultCategory }: Props) => {
   } = useForm<ProductFormData>({
     resolver: zodResolver(schema),
     defaultValues: {
-      name: "",
-      imageSrc: "",
-      description: "",
-      price: 0,
-      category: defaultCategory,
+      name: product?.name ?? "",
+      imageSrc: product?.imageSrc ?? "",
+      description: product?.description ?? "",
+      price: typeof product?.price === "number" ? product!.price : 0,
+      category: (product?.category as "oil" | "soap") ?? defaultCategory,
     },
   });
 
@@ -46,13 +46,14 @@ const ProductForm = ({ product, onSave, defaultCategory }: Props) => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  // Rehydrate form when switching create/edit
   useEffect(() => {
     if (product) {
-      setValue("name", product.name);
-      setValue("imageSrc", product.imageSrc);
-      setValue("description", product.description);
-      setValue("price", product.price);
-      setValue("category", product.category as "oil" | "soap");
+      setValue("name", product.name ?? "");
+      setValue("imageSrc", product.imageSrc ?? "");
+      setValue("description", product.description ?? "");
+      setValue("price", typeof product.price === "number" ? product.price : 0);
+      setValue("category", (product.category as "oil" | "soap") ?? defaultCategory);
     } else {
       reset({
         name: "",
@@ -62,9 +63,10 @@ const ProductForm = ({ product, onSave, defaultCategory }: Props) => {
         category: defaultCategory,
       });
     }
-  }, [product, defaultCategory, reset, setValue]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product, defaultCategory]);
 
-  // Upload image with axios
+  // Upload image
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -74,25 +76,22 @@ const ProductForm = ({ product, onSave, defaultCategory }: Props) => {
     setUploadError("");
 
     const formData = new FormData();
-    formData.append("image", file); //upload from frontend, backend routes not needed
+    formData.append("image", file);
 
     try {
       const res = await api.post("/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
-      const { imageUrl } = res.data;
-      if (imageUrl) {
+      const { imageUrl } = res.data || {};
+      if (typeof imageUrl === "string" && imageUrl.length > 0) {
         setValue("imageSrc", imageUrl);
-        console.log("Cloudinary returned URL:", imageUrl);
       } else {
-        setUploadError("No URL returned");
+        setUploadError("No URL returned from upload");
       }
     } catch (err: any) {
       console.error("Image upload error:", err);
-      setUploadError(err.response?.data?.error || "Image upload failed");
+      setUploadError(err?.response?.data?.error || "Image upload failed");
     } finally {
       setUploading(false);
     }
@@ -106,14 +105,20 @@ const ProductForm = ({ product, onSave, defaultCategory }: Props) => {
         await api.post("/products", data);
       }
 
-      reset();
+      reset({
+        name: "",
+        imageSrc: "",
+        description: "",
+        price: 0,
+        category: defaultCategory,
+      });
       setPreviewUrl("");
       onSave();
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
     } catch (err: any) {
       console.error("Error saving product:", err);
-      setErrorMessage("Failed to save product. Please try again.");
+      setErrorMessage(err?.response?.data?.error || "Failed to save product. Please try again.");
       setTimeout(() => setErrorMessage(""), 3000);
     }
   };
@@ -135,7 +140,6 @@ const ProductForm = ({ product, onSave, defaultCategory }: Props) => {
             ✅ Product saved successfully!
           </motion.div>
         )}
-
         {errorMessage && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -162,9 +166,7 @@ const ProductForm = ({ product, onSave, defaultCategory }: Props) => {
           {...register("name")}
           className="border px-4 py-2 rounded-md"
         />
-        {errors.name && (
-          <p className="text-red-500 text-sm">{errors.name.message}</p>
-        )}
+        {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
       </div>
 
       {/* Image Upload */}
@@ -176,34 +178,23 @@ const ProductForm = ({ product, onSave, defaultCategory }: Props) => {
           onChange={handleImageUpload}
           className="border px-4 py-2 rounded-md bg-white"
         />
-        {uploading && (
-          <p className="text-blue-500 text-sm mt-1">Uploading...</p>
-        )}
+        {uploading && <p className="text-blue-500 text-sm mt-1">Uploading...</p>}
         {uploadError && <p className="text-red-500 text-sm">{uploadError}</p>}
+
         <input
           type="text"
           readOnly
           {...register("imageSrc")}
           className="mt-2 bg-gray-100 text-gray-600 border px-3 py-2 rounded text-sm"
         />
-        {errors.imageSrc && (
-          <p className="text-red-500 text-sm">{errors.imageSrc.message}</p>
-        )}
+        {errors.imageSrc && <p className="text-red-500 text-sm">{errors.imageSrc.message}</p>}
       </div>
 
       {previewUrl && (
-        <img
-          src={previewUrl}
-          alt="Preview"
-          className="mt-2 w-32 h-32 object-cover rounded border"
-        />
+        <img src={previewUrl} alt="Preview" className="mt-2 w-32 h-32 object-cover rounded border" />
       )}
       {!previewUrl && product?.imageSrc && (
-        <img
-          src={product.imageSrc}
-          alt="Current"
-          className="mt-2 w-32 h-32 object-cover rounded border"
-        />
+        <img src={product.imageSrc} alt="Current" className="mt-2 w-32 h-32 object-cover rounded border" />
       )}
 
       {/* Description */}
@@ -214,31 +205,26 @@ const ProductForm = ({ product, onSave, defaultCategory }: Props) => {
           placeholder="Brief product details"
           className="border px-4 py-2 rounded-md"
         />
-        {errors.description && (
-          <p className="text-red-500 text-sm">{errors.description.message}</p>
-        )}
+        {errors.description && <p className="text-red-500 text-sm">{errors.description.message}</p>}
       </div>
 
       {/* Price */}
       <div className="flex flex-col">
-        <label className="font-medium mb-1">Price ($)</label>
+        <label className="font-medium mb-1">Price</label>
         <input
           type="number"
+          min={0}
+          step="0.01"
           {...register("price", { valueAsNumber: true })}
           className="border px-4 py-2 rounded-md"
         />
-        {errors.price && (
-          <p className="text-red-500 text-sm">{errors.price.message}</p>
-        )}
+        {errors.price && <p className="text-red-500 text-sm">{errors.price.message}</p>}
       </div>
 
       {/* Category */}
       <div className="flex flex-col">
         <label className="font-medium mb-1">Category</label>
-        <select
-          {...register("category")}
-          className="border px-4 py-2 rounded-md"
-        >
+        <select {...register("category")} className="border px-4 py-2 rounded-md">
           <option value="oil">Essential Oil</option>
           <option value="soap">Liquid Soap</option>
         </select>
