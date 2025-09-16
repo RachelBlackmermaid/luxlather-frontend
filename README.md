@@ -1,27 +1,38 @@
-# React + TypeScript + Vite
-
 # 🧼 LuxLather – Frontend
 
-LuxLather is a modern eCommerce platform for liquid soaps and scented oils.  
-This is the **frontend** built with **Vite**, **React**, and **TypeScript**.
+**LuxLather** is a modern eCommerce web app for artisanal liquid soaps and scented oils.  
+This is the **frontend** built using **Vite**, **React**, and **TypeScript**, and it's optimized for performance, scalability, and developer experience.
 
-It supports:
-- 🛍️ Product catalog & details
-- 🛒 Cart and checkout flow
-- 🧑‍💼 Admin dashboard for managing products (CRUD)
-- 💨 Fast performance with Vite
-- 🎨 Styled using Tailwind CSS (optional)
+**Live Site**: [luxlather.store](https://luxlather.store)
+
+---
+
+## ✨ Features
+
+- 🛍️ Product listing with responsive detail pages  
+- 🛒 Full cart + checkout flow with quantity selector and state persistence  
+- 💳 Stripe-powered payment integration with success page and email confirmation  
+- 🔐 JWT-based authentication and admin-only dashboard  
+- 🧑‍💼 Admin dashboard for product CRUD, image upload via Cloudinary, and UX enhancements (scroll position, toast feedback, icons)  
+- 🧪 Form validation with **Zod**, global state with **Zustand**  
+- ⚡ Built with **Vite** for lightning-fast development & builds  
+- 🎨 Styled with **Tailwind CSS** and modern UI patterns  
 
 ---
 
 ## 🛠 Tech Stack
 
-- [Vite](https://vitejs.dev/)
-- [React](https://react.dev/)
-- [TypeScript](https://www.typescriptlang.org/)
-- [PNPM](https://pnpm.io/) (preferred package manager)
-- Zustand or Redux (state management)
-- Tailwind CSS (optional)
+| Tech                | Purpose                              |
+|---------------------|---------------------------------------|
+| [Vite](https://vitejs.dev/)              | Build tool for fast DX         |
+| [React](https://react.dev/)             | UI Library                     |
+| [TypeScript](https://typescriptlang.org/) | Type-safe development          |
+| [Zustand](https://zustand-demo.pmnd.rs/) | Lightweight state management   |
+| [Zod](https://zod.dev/)                 | Type-safe schema validation    |
+| [Tailwind CSS](https://tailwindcss.com/) | Utility-first styling          |
+| [Cloudinary](https://cloudinary.com/)   | Image uploads in Admin UI      |
+| [Stripe](https://stripe.com/)           | Secure payment processing      |
+| [PNPM](https://pnpm.io/)                | Preferred package manager      |
 
 ---
 
@@ -31,52 +42,63 @@ It supports:
 ```bash
 pnpm install
 ```
-You can also use npm install or yarn if you prefer.
 
-### 2. Set up environment variables
+### 2.Set up environment variables
 ```bash
 cp .env.example .env
-Set your API URL:
+```
+Edit .env 
 ```bash
 VITE_API_URL=https://luxlather-backend.onrender.com/api
 ```
-### 3. Run the development server 
+### 3. Start development server
 ```bash
 pnpm dev
 ```
-Open http://localhost:5173 in your browser.
-
+Then open: http://localhost:5173
+---
 ## 🧱 Build & Preview
 ```bash
-pnpm build       # builds the app for production
-pnpm preview     # locally preview the production build
+pnpm build     # Builds for production
+pnpm preview   # Previews the built app
 ```
+---
 ## 🌍 Deployment
-This app is fully static after build(/dist folder)
-You can deploy to:
-- Netfly
+The frontend is fully static after build (/dist). Deployable to:
 - Vercel
+- Netlify
 - Cloudflare Pages
-- S3 + CloudFront
-- Docker(if neeed)
+- AWS S3 + CloudFront
+- Docker (for containerized deployments)
 
+---
 ## 📁 Project Structure
 ```bash
 luxlather-frontend/
-├── public/              # Static assets
-├── src/                 # React app code
-├── index.html           # Main HTML template
-├── vite.config.ts       # Vite config
-├── tsconfig.json        # TypeScript config
-├── .env.example         # Example env vars
+├── public/                # Static assets
+├── src/                   # Application code
+│   ├── components/        # Reusable UI components
+│   ├── pages/             # Page-level views
+│   ├── store/             # Zustand state slices
+│   ├── lib/               # API clients, helpers
+│   └── types/             # Shared TS types
+├── .env.example           # Example environment file
+├── vite.config.ts         # Vite configuration
+├── tsconfig.json          # TypeScript config
+└── index.html             # HTML entry
 ```
 ---
-## 🧼 About the Project
-LuxLather is designed for simplicity, speed, and real-world functionality.
-This frontend pairs with the LuxLather backend for full eCommerce functionality including:
-- JWT-based authentication
-- Image uploads (Cloudinary or similar)
-- Admin dashboard with secure routes
+### 🧼 About the Project
 
-## 👩🏾‍💻 Author
-Made by [Rachel Kibirigi](https://github.com/RachelBlackmermaid)
+LuxLather was built with a focus on clean code, production-ready structure, and real-world eCommerce flows. It's optimized for performance and maintainability, and includes:
+* Secure JWT-based authentication
+* Stripe Checkout integration
+* Cloudinary for image management
+* Admin-only product management dashboard
+* Fully responsive and mobile-friendly design
+* Strong separation of concerns (routes, components, state, API)
+This frontend pairs with the LuxLather backend (Node.js + Express + MongoDB) to deliver the full-stack experience.
+
+---
+### 👩🏾‍💻 Author
+Made by [Kibirigi Rachel](https://www.kibirigirachel.dev/)
