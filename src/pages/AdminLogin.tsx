@@ -73,26 +73,6 @@ const AdminLogin: React.FC = () => {
         >
           {submitting ? "Signing in…" : "Login"}
         </button>
-
-        {/* Optional: fallback for env-admin if you kept /auth/admin/env-login
-        <button
-          type="button"
-          onClick={async () => {
-            try {
-              await api.post("/auth/admin/env-login", {
-                username: identifier,
-                password,
-              });
-              window.location.href = "/admin";
-            } catch (e) {
-              setError("Env admin login failed");
-            }
-          }}
-          className="w-full mt-2 border border-gray-300 py-2 rounded hover:bg-gray-50"
-        >
-          Use Env-Admin
-        </button>
-        */}
       </form>
     </section>
   );

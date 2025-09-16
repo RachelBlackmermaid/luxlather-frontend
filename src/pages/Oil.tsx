@@ -9,7 +9,7 @@ type Product = {
   imageSrc?: string;
   description?: string;
   category: string;
-  // pricing can come in different shapes; all optional here
+  // pricing can come in different shapes;
   price?: number;                        // major units (virtual)
   priceCents?: number;                   // minor units
   prices?: Record<string, number>;       // per-currency minor units

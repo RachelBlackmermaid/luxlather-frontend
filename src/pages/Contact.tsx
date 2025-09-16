@@ -96,7 +96,6 @@ const Contact: React.FC = () => {
 
     try {
       setStatus("sending");
-      // Minimal backend endpoint; create one if you don't have it yet:
       // POST /api/contact  -> { name, email, message }
       await api.post("/contact", {
         name: form.name,

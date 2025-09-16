@@ -1,4 +1,3 @@
-// src/lib/currency.ts
 export const SUPPORTED_CURRENCIES =
   (import.meta.env.VITE_SUPPORTED_CURRENCIES || "UGX,JPY,USD,EUR,KES,RWF,TZS")
     .split(",").map((s: string )=> s.trim().toUpperCase());
@@ -39,7 +38,7 @@ export const formatMoney = (amount: number, currency = getCurrency()) => {
   }
 };
 
-/** Best-effort display price from a Product shape returned by your API */
+/** display price from a Product shape returned by your API */
 export const priceForProduct = (p: any, currency = getCurrency()): number => {
   if (p?.prices && typeof p.prices[currency] === "number") {
     return minorToMajor(p.prices[currency], currency);

@@ -18,7 +18,7 @@ type StripeSessionResponse = { id: string; url: string };
 const CheckoutPage: React.FC = () => {
   const cart = useCartStore((s) => s.cart);
   const toApiItems =
-    // use helper if your store has it, else fallback
+    // use helper
     (useCartStore.getState().toApiItems?.bind(useCartStore.getState())) ||
     (() => cart.map((i) => ({ productId: i._id, quantity: i.quantity })));
 
@@ -57,7 +57,7 @@ const CheckoutPage: React.FC = () => {
     setLoading(true);
 
     try {
-      const currency = getCurrency(); // UGX by default (can be KES/RWF/TZS/JPY/USD/EUR)
+      const currency = getCurrency(); 
       const payload = {
         items: toApiItems(),
         currency,

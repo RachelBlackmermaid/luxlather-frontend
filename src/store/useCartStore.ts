@@ -29,7 +29,7 @@ type CartState = {
   toApiItems: () => { productId: string; quantity: number }[];
 };
 
-/* Currency formatting (keeps your existing formatYen, but supports ENV override) */
+/* Currency formatting (supports ENV override) */
 const ENV_CCY = (import.meta.env.VITE_DEFAULT_CURRENCY || "JPY").toUpperCase();
 const formatCurrency = (amount: number) => {
   try {
@@ -38,7 +38,7 @@ const formatCurrency = (amount: number) => {
       currency: ENV_CCY,
     }).format(amount);
   } catch {
-    // fallback to your existing util
+    
     return formatYen(amount);
   }
 };

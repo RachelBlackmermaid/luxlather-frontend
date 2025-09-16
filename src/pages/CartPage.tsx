@@ -1,9 +1,8 @@
-// src/pages/CartPage.tsx
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import type { ChangeEvent } from "react";
 import useCartStore from "../store/useCartStore";
-import { formatMoney } from "../lib/currency"; // ⬅️ use multi-currency formatter
+import { formatMoney } from "../lib/currency"; 
 
 const CartPage = () => {
   // Select only the slices we need to minimise re-renders
@@ -28,8 +27,6 @@ const CartPage = () => {
   };
 
   const handleCheckout = () => {
-    // If you already have a dedicated checkout page, keep navigation.
-    // That page will post to /api/checkout/session and redirect to Stripe.
     navigate("/checkout");
   };
 

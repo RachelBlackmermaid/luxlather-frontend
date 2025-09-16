@@ -118,8 +118,7 @@ const Navbar = () => {
             alt="Luxlather Logo"
             className="h-35 w-auto"
           />
-          {/* Optional wordmark text if needed */}
-          {/* <span className="font-semibold tracking-tight text-neutral-900">LuxLather</span> */}
+         
         </NavLink>
 
         {/* Desktop Nav */}
