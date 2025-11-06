@@ -1,9 +1,8 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 import toast from "react-hot-toast";
-import { formatYen } from "../assets/utils/currency";
 
-/* Types */
+
 export type CartItem = {
   _id: string;          // productId in DB
   name: string;
@@ -37,7 +36,7 @@ const formatCurrency = (amount: number) => {
       style: "currency",
       currency: ENV_CCY,
     }).format(amount);
-  } catch {
+  } catch (err){
     console.warn("Currency formatting failed, falling back to USD:", err);
     return new Intl.NumberFormat("en-US", {
       style: "currency",
