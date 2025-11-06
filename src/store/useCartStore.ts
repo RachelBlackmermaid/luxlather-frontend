@@ -30,20 +30,22 @@ type CartState = {
 
 /* Currency formatting (supports ENV override) */
 const ENV_CCY = (import.meta.env.VITE_DEFAULT_CURRENCY || "USD").toUpperCase();
+
 const formatCurrency = (amount: number) => {
   try {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: ENV_CCY,
     }).format(amount);
-  } catch (err){
+  } catch (err) {
     console.warn("Currency formatting failed, falling back to USD:", err);
     return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency:"USD",
+      currency: "USD",
     }).format(amount);
-      }
+  }
 };
+
 
 const useCartStore = create<CartState>()(
   devtools(
