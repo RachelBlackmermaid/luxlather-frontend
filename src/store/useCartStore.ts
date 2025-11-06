@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 export type CartItem = {
   _id: string;          // productId in DB
   name: string;
-  price: number;        // major units (display only; backend recomputes)
+  price: number;        
   imageSrc: string;
   quantity: number;
 };
@@ -113,7 +113,7 @@ const useCartStore = create<CartState>()(
 
         formattedTotalPrice: () => formatCurrency(get().totalPrice()),
 
-        // 🔑 Use this when calling /api/checkout/session or /api/orders
+        // when calling /api/checkout/session or /api/orders
         toApiItems: () =>
           get().cart.map((i) => ({ productId: i._id, quantity: i.quantity })),
       }),
